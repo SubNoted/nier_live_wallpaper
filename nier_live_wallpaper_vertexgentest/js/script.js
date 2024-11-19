@@ -2,6 +2,90 @@
 var _instance;
 
 // const vertexShaderSource = await (await fetch("hills_shader.frag")).text();
+
+const vertexShaderSource0 = `
+    attribute vec3 position;
+    uniform mat4 projectionMatrix;
+    uniform mat4 modelViewMatrix;
+
+    varying vec3 vPosition;
+
+void main() {
+    vPosition = position;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}
+`;
+
+const fragmentShaderSource0 = `
+precision highp float;
+#define GLSLIFY 1
+
+varying vec3 vPosition;
+
+uniform vec3 ucolor;
+
+uniform float time;
+
+float rand(vec2 n) {
+  return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
+}
+
+void main() {
+  float r = rand(vPosition.xy * 0.5);
+  if (r < 0.1) {
+    gl_FragColor = vec4(ucolor, 1.0); // white
+  } else {
+    gl_FragColor = vec4(ucolor, 0.0); // black
+  }
+}
+`;
+
+const vertexShaderSource1 = `
+  #define GLSLIFY 1
+
+  attribute vec3 position;
+  uniform mat4 projectionMatrix;
+  uniform mat4 modelViewMatrix;
+
+  void main(void) {
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+
+const fragmentShaderSource1 = `
+precision highp float;
+  #define GLSLIFY 1
+ uniform vec3 resolution;
+
+  uniform float time;
+    uniform vec3 ucolor;
+
+  float rand(vec2 n) { 
+    return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
+  }
+
+  float noise(vec2 p){
+    vec2 ip = floor(p);
+    vec2 fp = fract(p);
+    fp = fp * fp * (3.0 - 2.0 * fp);
+    float res = mix(mix(rand(ip),rand(ip+vec2(1.0,0.0)),fp.x),mix(rand(ip+vec2(0.0,1.0)),rand(ip+vec2(1.0,1.0)),fp.x),fp.y);
+    return res;
+  }
+
+  void main(void) {
+    vec2 uv = gl_FragCoord.xy / resolution.xy;
+    vec2 center = vec2(0.5, 0.5);
+    float angle = time * 0.1;
+    float radius = 0.1 + sin(time * 0.05) * 0.05;
+    float diameter = radius * 2.0;
+    float distance = distance(uv, center);
+    float noiseValue = noise(uv * 10.0 + time);
+    float circle = step(distance, radius + noiseValue * 0.1);
+    gl_FragColor = vec4(vec3(circle), 1.0);
+    //gl_FragColor = vec4(ucolor, 0.5);
+  }
+`;
+
 const vertexShaderSource = `
     #define GLSLIFY 1
     attribute vec3 position;
@@ -131,7 +215,7 @@ const vertexShaderSource = `
         return 2.2 * n_xyz;
     }
     void main(void) {
-        vec3 updatePosition = (rotateMatrixX(radians(sin(time) * 70.0)) * rotateMatrixY(radians(sin(time * 2.0) * 70.0)) * vec4(position, 1.0)).xyz;
+        vec3 updatePosition = (rotateMatrixX(radians(90.0)) * vec4(position, 1.0)).xyz;
         float sin1 = sin(radians(updatePosition.x / 128.0 * 90.0));
         vec3 noisePosition = updatePosition + vec3(0.0, 0.0, time * -30.0);
         float noise1 = cnoise(noisePosition * 0.08);
@@ -144,13 +228,30 @@ const vertexShaderSource = `
     }
 `;
 
+const fragmentShaderSource = `
+precision highp float;
+#define GLSLIFY 1
+
+varying vec3 vPosition;
+
+uniform vec3 ucolor;
+
+uniform float uopacity;
+
+void main(void) 
+{
+    float opacity = (96.0 - length(vPosition)) / 256.0 * 0.6;
+    gl_FragColor = vec4(ucolor, opacity*uopacity);
+}
+`;
 
 class Plane {
   constructor() {
     this.uniforms = {
       time : { type: 'f', value: 0 },
       ucolor : { type: 'v3', value: new THREE.Vector3(1.,1.,1.) },
-      uopacity : { type: 'f', value: 1.0 }
+      uopacity : { type: 'f', value: 1.0 },
+      resolution : { type: 'v2', value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
     };
     this.mesh = this.createMesh();
     this.time = 1;
@@ -161,8 +262,8 @@ class Plane {
       new THREE.PlaneGeometry(256, 256, 256, 256),
       new THREE.RawShaderMaterial({
         uniforms: this.uniforms,
-        vertexShader: vertexShaderSource,
-        fragmentShader: "precision highp float;\n#define GLSLIFY 1\n\nvarying vec3 vPosition;\n\nuniform vec3 ucolor;\n\nuniform float uopacity;\n\nvoid main(void) {\n  float opacity = (96.0 - length(vPosition)) / 256.0 * 0.6;\n gl_FragColor = vec4(ucolor, opacity*uopacity);\n}\n",
+        vertexShader: vertexShaderSource0,
+        fragmentShader: fragmentShaderSource1,
         transparent: true
       })
     );
@@ -205,17 +306,7 @@ const renderLoop = () => {
   raf=requestAnimationFrame(renderLoop);
 }
 
-//lively stuffs
-
-let noClock = false;
-let _12hour =true;
-let noDate=false;
-let mmddyy=true;
-
-const dayArr=["Sunday","Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
-
-let background = "#0e0e0e";
+let background = "#1e1e1e";
 const init = () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setClearColor(parseInt(background.replace('#','0x')), 1.0);
@@ -238,59 +329,6 @@ init();
 window.onresize = e =>{
   clockPos();
 }
-
-function clockPos(){
-  const clockEl = document.querySelector('.p-summary');
-  clockEl.style.left= window.innerWidth/2-clockEl.clientWidth/2 + "px";
-}
-
-function UpdateClock() {
-  const time = new Date();
-
-  let timeEl = document.getElementById('clock');
-  let dateEl = document.getElementById('date');
-  let dayEl = document.getElementById('day');
-
-  /*
-  if(noDate && noClock){
-    dateEl.style.display="none";
-    dayEl.style.display="none";
-    timeEl.style.display="none";
-    return
-  }
-  */
-  
-  if(noClock)
-    timeEl.style.display="none";
-  else
-    timeEl.style.display="block";
-
-  if(noDate){
-    dateEl.style.display="none";
-    dayEl.style.display="none";
-  }else{
-    dateEl.style.display="block";
-    dayEl.style.display="block";
-  }
-  
-  let d = new Date();
-
-  if(_12hour)
-    timeEl.innerHTML=`- ${new Intl.DateTimeFormat('en-US',{'hour':'2-digit','minute':'2-digit','hour12':true}).format(d)} -`.replace("AM",'').replace("PM",'');
-  else
-    timeEl.innerHTML=`- ${new Intl.DateTimeFormat('en-US',{'hour':'2-digit','minute':'2-digit','hour12':false}).format(d)} -`;
-
-  if(mmddyy)
-    dateEl.innerText=new Intl.DateTimeFormat('en-US',{'month':'short','day':'2-digit','year':'2-digit'}).format(d).replace(',','');
-  else
-    dateEl.innerText=new Intl.DateTimeFormat('en-GB',{'day':'2-digit','month':'2-digit','year':'2-digit'}).format(d).replace(',','');
-  
-  dayEl.innerText = dayArr[d.getDay()];
-
-  setTimeout(UpdateClock, 1000);
-}
-UpdateClock();
-clockPos();
 
 function livelyPropertyListener(name, val)
 {
