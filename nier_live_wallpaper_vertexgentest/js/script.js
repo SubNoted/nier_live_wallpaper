@@ -1,8 +1,6 @@
 
 var _instance;
 
-// const vertexShaderSource = await (await fetch("hills_shader.frag")).text();
-
 const vertexShaderSource0 = `
     attribute vec3 position;
     uniform mat4 projectionMatrix;
@@ -82,7 +80,6 @@ precision highp float;
     float noiseValue = noise(uv * 10.0 + time);
     float circle = step(distance, radius + noiseValue * 0.1);
     gl_FragColor = vec4(vec3(circle), 1.0);
-    //gl_FragColor = vec4(ucolor, 0.5);
   }
 `;
 
