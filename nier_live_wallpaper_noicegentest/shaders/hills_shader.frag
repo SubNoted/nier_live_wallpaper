@@ -5,10 +5,6 @@ precision highp float;
 uniform vec2 resolution; // resolution of the screen
 uniform float time; // time in seconds
 
-float noise(vec2 st) {
-  return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453);
-}
-
 float rand(vec2 n) {
   return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
 }
@@ -29,21 +25,44 @@ float perlinNoise(vec2 st) {
 
   return mix(x1, x2, v);
 }
+vec2 rand2(vec2 n) {
+//   int index = int(n.x) + int(n.y) * 256;
+//   int seed = index * 1103515245 + 12345;
+//   return vec2(float(seed % 256) / 255.0, float(seed % 256) / 255.0);
 
+    return vec2(rand(n), fract(sin(dot(n, vec2(9.14571, 2.12444))) * 4.0));
+}
+float voronoiNoise(vec2 st, vec2 offset) {
+  vec2 i_st = floor(st);
+  vec2 f_st = fract(st);
+
+  float min_dist = 1.0;
+
+  for (int j = -3; j <= 3; j++) {
+    for (int k = -3; k <= 3; k++) {
+      vec2 neighbor = vec2(float(j), float(k));
+      vec2 point = rand2(i_st + neighbor)*1.5;
+      float dist = distance(f_st, fract(point + offset)) - rand(i_st + neighbor) * .2;
+      min_dist = min(min_dist, dist);
+    }
+  }
+
+  return min_dist * 2.0;
+}
 
 void main() {
   vec2 uv = gl_FragCoord.xy / resolution.xy; // normalized coordinates
   vec3 color = vec3(0.0, 0.3, 0.5); // initialize color to black
 
   // generate a random star pattern
-  float starNoise = pow(perlinNoise(vec2(uv.x + time * .3, uv.y) * 15.0), 2.0) * pow(perlinNoise(vec2(uv.x - time * .5, uv.y) * 10.0), 2.0) * pow(perlinNoise(vec2(uv.x, uv.y - time * .3) * 10.0), 2.0);
+  float starNoise = (voronoiNoise(vec2(uv.x, uv.y),vec2(time * 0.1)));
   float starThreshold = 0.1; // adjust this value to control the density of stars
   float starSize = 1.0;//smoothstep(0.0, 0.1, starNoise);
   if (starNoise > starThreshold) {
     color = vec3(1.0) * starSize; // white star
   }
 else
-  color += vec3(.0,(starNoise)*5.0,(starNoise)*10.0); // white star
+  color += vec3((starNoise)); // white star
 
   // add some twinkling to the stars
 //   float twinkleNoise = noise(uv);
