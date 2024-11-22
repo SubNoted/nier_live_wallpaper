@@ -26,48 +26,66 @@ float perlinNoise(vec2 st) {
   return mix(x1, x2, v);
 }
 vec2 rand2(vec2 n) {
-//   int index = int(n.x) + int(n.y) * 256;
-//   int seed = index * 1103515245 + 12345;
-//   return vec2(float(seed % 256) / 255.0, float(seed % 256) / 255.0);
-
-    return vec2(rand(n), fract(sin(dot(n, vec2(9.14571, 2.12444))) * 4.0));
+    return vec2(rand(n), fract(sin(dot(n, vec2(9.145, 2.124))) * 437.0));
 }
-float voronoiNoise(vec2 st, vec2 offset) {
+
+float voronoiNoise(vec2 st, vec2 offset, float size, float dots) {
   vec2 i_st = floor(st);
   vec2 f_st = fract(st);
 
-  float min_dist = 1.0;
+  float min_dist = 1.;
 
-  for (int j = -3; j <= 3; j++) {
-    for (int k = -3; k <= 3; k++) {
-      vec2 neighbor = vec2(float(j), float(k));
-      vec2 point = rand2(i_st + neighbor)*1.5;
-      float dist = distance(f_st, fract(point + offset)) - rand(i_st + neighbor) * .2;
+  for (float i = -dots*2.; i < dots*2.; i++) {
+      vec2 point = rand2(i_st + vec2((i)));
+      float dist = distance(f_st, fract(point + offset)*1.5 - .1)/size;
       min_dist = min(min_dist, dist);
-    }
   }
 
-  return min_dist * 2.0;
+  return min_dist * 1.0;
+}
+
+float starNoise(vec2 uv, float layer)
+{
+    // generate a random star pattern
+    vec2 offset = vec2(-time*.015*layer, 0.);
+    float t = time * 3.;
+    float fadeNoice = pow(perlinNoise(vec2(uv.x*4., uv.y*15. + t*.3)*2.), 3.5);
+    //fadeNoice *= pow(perlinNoise(vec2(uv.x*3., uv.y*5. + time*.5)*2.), 1.5);
+
+    float starNoise = 1.0 - (voronoiNoise(vec2(uv.x, uv.y),offset, 0.01 * fadeNoice * layer * .25, 20. / layer));
+    starNoise *= fadeNoice;
+
+    return starNoise;
 }
 
 void main() {
-  vec2 uv = gl_FragCoord.xy / resolution.xy; // normalized coordinates
-  vec3 color = vec3(0.0, 0.3, 0.5); // initialize color to black
+    vec2 uv = gl_FragCoord.xy / vec2(resolution.y); // normalized coordinates
 
-  // generate a random star pattern
-  float starNoise = (voronoiNoise(vec2(uv.x, uv.y),vec2(time * 0.1)));
-  float starThreshold = 0.1; // adjust this value to control the density of stars
-  float starSize = 1.0;//smoothstep(0.0, 0.1, starNoise);
-  if (starNoise > starThreshold) {
-    color = vec3(1.0) * starSize; // white star
-  }
-else
-  color += vec3((starNoise)); // white star
+    vec3 color = vec3(0.04, 0.04, 0.05); // initialize color to black
 
-  // add some twinkling to the stars
-//   float twinkleNoise = noise(uv);
-//   color *= 0.5 + twinkleNoise;
+    vec2 points[10];
+    for (int i = 0; i < 10; i++)
+    {
+        points[i] = normalize(rand2(resolution + vec2(float(i))));
+    }
 
-  // output the final color
-  gl_FragColor = vec4(color, 1.0);
+    // if (uv.y >= .5){
+    //     color += vec3(starNoise(uv, 4.));
+    //     color += vec3(starNoise(uv, 3.));
+    //     color += vec3(starNoise(uv, 2.));
+    //     color += vec3(starNoise(uv, 1.));
+    // }
+    // else{
+    //     color += vec3(starNoise(vec2(uv.x, 1.-uv.y), 4.)) * 0.8;
+    //     color += vec3(starNoise(vec2(uv.x, 1.-uv.y), 3.)) * 0.8;
+    //     color += vec3(starNoise(vec2(uv.x, 1.-uv.y), 2.)) * 0.8;
+    //     color += vec3(starNoise(vec2(uv.x, 1.-uv.y), 1.)) * 0.8;
+    // }
+
+    if (distance(uv, points[0]) < 0.01)
+    {
+        color = vec3(1.);
+    }
+
+    gl_FragColor = vec4(color, 1.0);  
 }
