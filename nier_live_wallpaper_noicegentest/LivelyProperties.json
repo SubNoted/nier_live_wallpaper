@@ -1,6 +1,6 @@
 {
   //div by 100
-  "hillOpacityFac": {
+  "test": {
     "max": 1000,
     "min": 0,
     "tick": 1001,
@@ -13,34 +13,9 @@
     "type": "color",
     "value": "#0e0e0e"
   },
-  "hillColor": {
+  "petalsColor": {
     "text": "Hill",
     "type": "color",
     "value": "#000000"
-  },
-  "fontColor": {
-    "text": "Font",
-    "type": "color",
-    "value": "#ffffff"
-  },
-  "timeToggle": {
-    "type": "checkbox",
-    "value": true,
-    "text": "Time"
-  },
-  "dateToggle": {
-    "type": "checkbox",
-    "value": true,
-    "text": "Date"
-  },
-  "_12hour": {
-    "type": "checkbox",
-    "value": true,
-    "text": "12 Hour"
-  },
-  "mmddyy": {
-    "type": "checkbox",
-    "value": false,
-    "text": "Month/Day Format"
   }
 }

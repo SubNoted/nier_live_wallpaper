@@ -32,10 +32,10 @@ float starNoise(vec2 uv)
     for (float z = 1.; z < 5.; z++)
     {
         float t = time*.11/z;
-        float s_noise = pow(perlinNoise((uv + vec2(t, 0.93 + z))*43.*z), 3. / z);
+        float s_noise = pow(perlinNoise((uv + vec2(t, 0.93 + z))*44.*z), 3. / z);
         s_noise *= pow(perlinNoise((uv + vec2(t*1.1, 12.78 + z))*33.*z), 3. / z);
 
-        noise += pow(smoothstep(.67 + (z)*.046, 1.,s_noise), 0.7 + z*.1);
+        noise += pow(smoothstep(.68 + (z)*.046, 1.,s_noise), 0.7 + z*.1);
     }
     return noise;
 }
