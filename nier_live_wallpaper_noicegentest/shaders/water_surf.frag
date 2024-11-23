@@ -45,10 +45,6 @@ void main() {
 else
   color += vec3(.0,(starNoise)*5.0,(starNoise)*10.0); // white star
 
-  // add some twinkling to the stars
-//   float twinkleNoise = noise(uv);
-//   color *= 0.5 + twinkleNoise;
-
   // output the final color
   gl_FragColor = vec4(color, 1.0);
 }
