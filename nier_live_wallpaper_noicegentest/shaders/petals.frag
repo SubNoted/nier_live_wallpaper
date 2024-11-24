@@ -1,6 +1,6 @@
-#version 300 es
-
+#ifdef GL_ES
 precision highp float;
+#endif
 
 uniform vec2 resolution; // resolution of the screen
 uniform float time; // time in seconds

@@ -46,7 +46,7 @@ float perlinNoise(vec2 st) {
 float starNoise(vec2 uv)
 {
     float noise = 0.;
-    for (float z = 1.; z < 5.; z++)
+    for (float z = 1.; z < 6.; z++)
     {
         float t = time*.11/z;
         float s_noise = pow(perlinNoise((uv + vec2(t, 0.93 + z))*44.*z), 3. / z);
@@ -60,7 +60,7 @@ float starNoise(vec2 uv)
 void main() {
     vec2 uv = gl_FragCoord.xy / vec2(resolution.y); // normalized coordinates
 
-    vec3 color = vec3(0.04, 0.04, 0.05); // initialize color to black
+    vec3 color = vec3(.04, 0.04, 0.05); // initialize color to black
 
     if (uv.y >= .5)
         color += vec3(pow(starNoise(vec2(uv.x, uv.y)), 1.1));
@@ -105,8 +105,10 @@ const renderer = new THREE.WebGLRenderer({
   canvas: canvas,
 });
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
+//const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
+const camera = new THREE.OrthographicCamera(-1, 100, 1, -1, 0, 1);
 const clock = new THREE.Clock();
+let material;
 
 const plane = new Plane();
 
@@ -115,7 +117,7 @@ const resizeWindow = () => {
   canvas.height = window.innerHeight;
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setSize(window.innerWidth, window.innerHeight, 2);
 }
 const on = () => {
   $(window).on('resize', () => {
@@ -133,11 +135,11 @@ const renderLoop = () => {
 }
 
 let background = "#1e1e1e";
-const init = () => {
+async function init(){
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setClearColor(parseInt(background.replace('#','0x')), 1.0);
-  camera.position.set(0, 16, 128);
-  camera.lookAt(new THREE.Vector3(0, 28, 0));
+  //camera.position.set(0, 16, 128);
+  //camera.lookAt(new THREE.Vector3(0, 28, 0));
   
   while(scene.children.length > 0){ 
     scene.remove(scene.children[0]); 
@@ -145,36 +147,41 @@ const init = () => {
   if(raf){
     cancelAnimationFrame(raf);
   }
-  scene.add(plane.mesh);
+
+//   material = new THREE.ShaderMaterial({
+//     uniforms: {
+//         time : { type: 'f', value: 0 },
+//         ucolor : { type: 'v3', value: new THREE.Vector3(1.,1.,1.) },
+//         uopacity : { type: 'f', value: 1.0 },
+//         resolution : { type: 'v2', value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
+//       },
+//       vertexShader: vertexShaderSource0,
+//       fragmentShader: fragmentShaderSource0,
+//       transparent: true
+//   });
+//   plane.mesh.fragmentShader = await (await fetch("shaders/petals.frag")).text();
+
+//   new THREE.TextureLoader().load("media/image.jpg", function (tex) {
+//     material.uniforms.u_tex0_resolution.value = new THREE.Vector2(tex.image.width, tex.image.height);
+//     material.uniforms.u_tex0.value = tex;
+//   });
+
+//   const quad = new THREE.Mesh(new THREE.PlaneGeometry(256, 256, 256, 256), material);
+//   scene.add(quad);
+
+ scene.add(plane.mesh);
+
+
   on();
   resizeWindow();
   renderLoop();
 }
 init();
 
-window.onresize = e =>{
-  clockPos();
-}
-
 function livelyPropertyListener(name, val)
 {
   switch(name) {
-    case "timeToggle":
-      noClock=!val;
-      break;
-    case "dateToggle":
-      noDate=!val;
-      break;
-    case "_12hour":
-      _12hour=val;
-      break;
-    case "mmddyy":
-      mmddyy=!val;
-      break;
-    case "fontColor":
-      document.querySelector(".p-summary").style.color = val; 
-      break;
-    case "hillColor":
+    case "petalsColor":
       tmp = hexToRgb(val);
       _instance.uniforms.ucolor.value  = new THREE.Vector3(tmp.r/255, tmp.g/255, tmp.b/255);
       break;
@@ -182,11 +189,14 @@ function livelyPropertyListener(name, val)
       background = val;
       init();
       break; 
-    case "hillOpacityFac":
-      _instance.uniforms.uopacity.value = val/100;
-      break;
   }
 }
+
+window.addEventListener("resize", function (e) {
+    renderer.setSize(window.innerWidth, window.innerHeight, 2);
+  
+    material.uniforms.u_resolution.value = new THREE.Vector2(window.innerWidth, window.innerHeight);
+  });
 
 function hexToRgb(hex) {
   var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
