@@ -22,6 +22,9 @@ uniform vec2 resolution; // resolution of the screen
 uniform float time; // time in seconds
 uniform vec3 ucolor;
 
+uniform sampler2D u_tex0;
+uniform vec2 u_tex0_resolution; 
+
 float rand(vec2 n) {
   return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
 }
@@ -67,6 +70,8 @@ void main() {
     else
         color += vec3(pow(starNoise(vec2(uv.x, 1.-uv.y)), 1.5));
 
+    color += texture2D(u_tex0, uv*0.5).rgb;
+
     gl_FragColor = vec4(color, 1.0);
 }
 `;
@@ -77,10 +82,16 @@ class Plane {
       time : { type: 'f', value: 0 },
       ucolor : { type: 'v3', value: new THREE.Vector3(1.,1.,1.) },
       uopacity : { type: 'f', value: 1.0 },
-      resolution : { type: 'v2', value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
+      resolution : { type: 'v2', value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+
+      
+      u_tex0_resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight), type: "v2" },
+      u_tex0: { type: "t" },
+    
     };
     this.mesh = this.createMesh();
     this.time = 1;
+    this.fillTexture();
     _instance = this;
   }
   createMesh() {
@@ -91,9 +102,18 @@ class Plane {
         vertexShader: vertexShaderSource0,
         fragmentShader: fragmentShaderSource0,
         transparent: true
+        
       })
     );
   }
+  fillTexture() {
+    
+    new THREE.TextureLoader().load("media/sword_t (2).png", function (tex) {
+      this.uniforms.u_tex0_resolution.value = new THREE.Vector2(tex.image.width, tex.image.height);
+      this.uniforms.u_tex0.value = tex;
+    });
+  }
+
   render(time) {
     this.uniforms.time.value += time * this.time;
   }
@@ -168,6 +188,8 @@ async function init(){
 
 //   const quad = new THREE.Mesh(new THREE.PlaneGeometry(256, 256, 256, 256), material);
 //   scene.add(quad);
+
+  
 
  scene.add(plane.mesh);
 

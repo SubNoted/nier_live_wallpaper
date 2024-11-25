@@ -5,6 +5,9 @@ precision highp float;
 uniform vec2 resolution; // resolution of the screen
 uniform float time; // time in seconds
 
+uniform sampler2D u_tex0;
+uniform vec2 u_tex0_resolution; 
+
 float rand(vec2 n) {
   return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
 }
