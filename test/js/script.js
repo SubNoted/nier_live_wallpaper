@@ -43,7 +43,7 @@ async function init() {
   });
   material.fragmentShader = await (await fetch("shaders/rain.frag")).text();
 
-  new THREE.TextureLoader().load("media/image.jpg", function (tex) {
+  new THREE.TextureLoader().load("media/sword_t.png", function (tex) {
     material.uniforms.u_tex0_resolution.value = new THREE.Vector2(tex.image.width, tex.image.height);
     material.uniforms.u_tex0.value = tex;
   });

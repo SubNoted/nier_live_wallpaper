@@ -53,5 +53,7 @@ void main() {
     else
         color += vec3(pow(starNoise(vec2(uv.x, 1.-uv.y)), 1.5));
 
+    color = texture2D(u_tex0, uv*1.).rgb;
+
     gl_FragColor = vec4(color, 1.0);
 }
