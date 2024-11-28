@@ -5,8 +5,13 @@ precision highp float;
 uniform vec2 resolution; // resolution of the screen
 uniform float time; // time in seconds
 
-uniform sampler2D u_tex0;
-uniform vec2 u_tex0_resolution; 
+uniform sampler2D u_tex_base;
+uniform sampler2D u_tex_flower1;
+uniform sampler2D u_tex_flower2;
+uniform sampler2D u_tex_flower3;
+uniform sampler2D u_tex_flower4;
+uniform sampler2D u_tex_flower5;
+uniform vec2 u_tex_resolution; 
 
 float rand(vec2 n) {
   return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
@@ -48,12 +53,18 @@ void main() {
 
     vec3 color = vec3(0.04, 0.04, 0.05); // initialize color to black
 
+    //petals
     if (uv.y >= .5)
         color += vec3(pow(starNoise(vec2(uv.x, uv.y)), 1.1));
     else
         color += vec3(pow(starNoise(vec2(uv.x, 1.-uv.y)), 1.5));
 
-    color = texture2D(u_tex0, uv*1.).rgb;
+    //textures
+    vec2 tex_uv = gl_FragCoord.xy/u_tex_resolution;
+    vec2 tex_offset = vec2(0.5, 0.5);
+    //tex_offset *= 
+    
+    color += vec3(texture2D(u_tex_base, (tex_uv)*1. + tex_offset));
 
     gl_FragColor = vec4(color, 1.0);
 }

@@ -10,8 +10,13 @@ class Plane {
       resolution : { type: 'v2', value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
 
       
-      u_tex0_resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight), type: "v2" },
-      u_tex0: { type: "t" },
+      u_tex_resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight), type: "v2" },
+      u_tex_base: { type: "t" },
+      u_tex_flower1: { type: "t" },
+      u_tex_flower2: { type: "t" },
+      u_tex_flower3: { type: "t" },
+      u_tex_flower4: { type: "t" },
+      u_tex_flower5: { type: "t" },
     
     };
     this.material = this.createMaterial();
@@ -35,9 +40,24 @@ class Plane {
 
   fillTexture() {
     let mat = this.material;
-    new THREE.TextureLoader().load("media/sword_t.png", function (tex) {
-      mat.uniforms.u_tex0_resolution.value = new THREE.Vector2(tex.image.width, tex.image.height);
-      mat.uniforms.u_tex0.value = tex;
+    new THREE.TextureLoader().load("media/sword/test.jpg", function (tex) {
+      mat.uniforms.u_tex_resolution.value = new THREE.Vector2(tex.image.width, tex.image.height);
+      mat.uniforms.u_tex_base.value = tex;
+    });
+    new THREE.TextureLoader().load("media/sword/flower1.png", function (tex) {
+      mat.uniforms.u_tex_flower1.value = tex;
+    });
+    new THREE.TextureLoader().load("media/sword/flower2.png", function (tex) {
+      mat.uniforms.u_tex_flower2.value = tex;
+    });
+    new THREE.TextureLoader().load("media/sword/flower3.png", function (tex) {
+      mat.uniforms.u_tex_flower3.value = tex;
+    });
+    new THREE.TextureLoader().load("media/sword/flower4.png", function (tex) {
+      mat.uniforms.u_tex_flower4.value = tex;
+    });
+    new THREE.TextureLoader().load("media/sword/flower5.png", function (tex) {
+      mat.uniforms.u_tex_flower5.value = tex;
     });
   }
 
@@ -96,22 +116,17 @@ async function init(){
     cancelAnimationFrame(raf);
   }
 
-  
 
+    plane.material.fragmentShader = await (await fetch("./shaders/petals.frag")).text();
+    plane.material.vertexShader = await (await fetch("./shaders/empty.vert")).text();
+
+    
 //   new THREE.TextureLoader().load("./media/sword_t.png", function (tex) {
 //     material.uniforms.u_tex0_resolution.value = new THREE.Vector2(tex.image.width, tex.image.height);
 //     material.uniforms.u_tex0.value = tex;
 //   });
 
-    plane.material.fragmentShader = await (await fetch("./shaders/petals.frag")).text();
-    plane.material.vertexShader = await (await fetch("./shaders/empty.vert")).text();
-
     scene.add(plane.createMesh());
-
-  
-
- //scene.add(plane.createMesh());
-
 
     on();
     resizeWindow();
