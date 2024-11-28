@@ -40,7 +40,7 @@ class Plane {
 
   fillTexture() {
     let mat = this.material;
-    new THREE.TextureLoader().load("media/sword/test.jpg", function (tex) {
+    new THREE.TextureLoader().load("media/sword/base.png", function (tex) {
       mat.uniforms.u_tex_resolution.value = new THREE.Vector2(tex.image.width, tex.image.height);
       mat.uniforms.u_tex_base.value = tex;
     });
