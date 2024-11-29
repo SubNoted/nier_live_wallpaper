@@ -68,12 +68,7 @@ void main() {
     float textureAspect = u_tex_resolution.x / u_tex_resolution.y;
 
     // Calculate the scaling factors
-    vec2 scaleFactors;
-    if (screenAspect > textureAspect) {
-        scaleFactors = vec2(screenAspect / textureAspect, 1.0);
-    } else {
-        scaleFactors = vec2(1.0, textureAspect / screenAspect);
-    }
+    vec2 scaleFactors = vec2(screenAspect / textureAspect, 1.0);
 
     // Calculate the final UV coordinates
     vec2 final_uv = (gl_FragCoord.xy / resolution - tex_offset) * scaleFactors / scale + 0.5;
@@ -96,33 +91,29 @@ void main() {
         color += texture2D(u_tex_flower4, final_uv).rgb;
         //flower5        
         color += texture2D(u_tex_flower5, final_uv).rgb;
+        //////////glowing effect//////////////////
 
-    }
+        vec2 flowerFinalCoords[5];
+        flowerFinalCoords[0] = vec2(0.0, 0.0);
+        flowerFinalCoords[1] = vec2(0.3, 0.3);
+        flowerFinalCoords[2] = vec2(0.5, 0.5);
+        flowerFinalCoords[3] = vec2(0.7, 0.7);
+        flowerFinalCoords[4] = vec2(1., 1.);
 
-    //////////glowing effect///////////////////
-
-    vec2 flowerCoords[5];
-    flowerCoords[0] = vec2(0.3, 0.5);
-    flowerCoords[1] = vec2(0.7, 0.5);
-    flowerCoords[2] = vec2(0.3, 0.3);
-    flowerCoords[3] = vec2(0.7, 0.3);
-    flowerCoords[4] = vec2(0.7, 0.5);
-
-    const int i = 0;
-    //for (int i = 0; i < 5; i++) 
-    {
-        float dist = length(flowerCoords[i] - uv);
-        if (dist > 0.5) {
-            //continue;
-        }
-        else
+        //const int i = 0;
+        for (int i = 0; i < 5; i++)
         {
-            float red = 1. - dist*3.6;
-            color += vec3(red,.0,.0);
+            vec2 flowerCoords = (flowerFinalCoords[i] - 0.5) * scale / scaleFactors + tex_offset;
+            float dist = distance(uv, flowerCoords * resolution / resolution.y);
+            float light = 1.0 - dist * 20.0;
+            if (light > 0.0) 
+                color += vec3(pow(light, 1.0), 0.,0.);
         }
     }
+    
+
+    
 
     gl_FragColor = vec4(color, 1.0);
 }
-
 
