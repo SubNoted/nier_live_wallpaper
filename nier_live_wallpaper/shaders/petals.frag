@@ -69,13 +69,13 @@ void main() {
     if (uvy.y >= .5)
         color += vec3(pow(starNoise(vec2(uvy.x, uvy.y)), 1.0));
     else{
-        uvy += vec2(water_distortionX, .0);
+        uvy += vec2(water_distortionX*.5, water_distortionX*1.);
         color += vec3(pow(starNoise(vec2(uvy.x, 1.-uvy.y)), 1.5));
-        distorted_uv +=vec2(water_distortionX*.5, water_distortionX*1.);
+        distorted_uv += vec2(water_distortionX*.5, water_distortionX*1.);
     }
     ///////////////////textures///////////////////
     {
-        vec2 normal_tex_offset = vec2(.75, .65);
+        vec2 normal_tex_offset = vec2(.79, .65);
         vec2 scale = vec2(0.45, 0.45); // Adjust this value to scale the texture
 
         vec2 normalFlowerCoords[5];
