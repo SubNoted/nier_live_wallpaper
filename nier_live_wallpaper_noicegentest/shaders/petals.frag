@@ -56,9 +56,9 @@ void main() {
     vec3 color = vec3(0.04, 0.04, 0.05); // initialize color to black
 
     //water distortion //TODO change
-    float water_distortionX = (perlinNoise(vec2(uvy.x*2. + time * 0.1, uvy.y*.5) * 6.0) * perlinNoise(vec2(uvy.x + time * 0.1, uvy.y * 10. + time * 0.16) * 8.0) - .5)*.015;
-    float water_distortionY = (perlinNoise(vec2(uvy.x + time * 0.07, uvy.y*6.) * 20.0) * perlinNoise(vec2(uvy.x, uvy.y*4. + time * 0.15) * 20.0) - .5)*.008;
-    //color += water_distortionY * 50.5;
+    float water_distortionX = (perlinNoise(vec2(uvy.x*2. + time * 0.1, uvy.y*5.0 + time * 0.1) * 10.0));// * perlinNoise(vec2(uvy.x + time * 0.1, uvy.y * 10. + time * 0.16) * 8.0) - .5)*.015;
+    float water_distortionY = (perlinNoise(vec2(uvy.x + time * 0.07, uvy.y*6.) * 20.0))*.004;
+    //color += water_distortionX * 50.5;
     
 
     ///////petals////////////////////////////////
@@ -67,9 +67,9 @@ void main() {
     else{
         uvy += vec2(water_distortionX, water_distortionY);
         color += vec3(pow(starNoise(vec2(uvy.x, 1.-uvy.y)), 1.5));
-        uv += vec2(water_distortionX, water_distortionY); //todo add smooth step
+        
     }
-
+    uv += vec2(water_distortionX*.01, water_distortionX); //todo add smooth step
     ///////////////////textures///////////////////
     {
         vec2 normal_tex_offset = vec2(.5, .65);
