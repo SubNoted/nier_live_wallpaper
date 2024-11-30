@@ -11,6 +11,7 @@ uniform sampler2D u_tex_flower2;
 uniform sampler2D u_tex_flower3;
 uniform sampler2D u_tex_flower4;
 uniform sampler2D u_tex_flower5;
+uniform sampler2D u_tex_water;
 uniform vec2 u_tex_resolution; 
 
 float rand(vec2 n) {
@@ -50,22 +51,24 @@ float starNoise(vec2 uv)
 
 void main() {
     vec2 uvy = gl_FragCoord.xy / vec2(resolution.y); // normalized coordinates
-
+    
+    vec2 uv = gl_FragCoord.xy / resolution;
     vec3 color = vec3(0.04, 0.04, 0.05); // initialize color to black
 
-    //water distortion
+    //water distortion //TODO change
     float water_distortionX = (perlinNoise(vec2(uvy.x*2. + time * 0.1, uvy.y*.5) * 6.0) * perlinNoise(vec2(uvy.x + time * 0.1, uvy.y * 10. + time * 0.16) * 8.0) - .5)*.015;
     float water_distortionY = (perlinNoise(vec2(uvy.x + time * 0.07, uvy.y*6.) * 20.0) * perlinNoise(vec2(uvy.x, uvy.y*4. + time * 0.15) * 20.0) - .5)*.008;
     //color += water_distortionY * 50.5;
+    
 
     ///////petals////////////////////////////////
     if (uvy.y >= .5)
         color += vec3(pow(starNoise(vec2(uvy.x, uvy.y)), 1.0));
-    else
+    else{
+        uvy += vec2(water_distortionX, water_distortionY);
         color += vec3(pow(starNoise(vec2(uvy.x, 1.-uvy.y)), 1.5));
-
-    vec2 uv = gl_FragCoord.xy / resolution;
-    uv += vec2(water_distortionX, water_distortionY);
+        uv += vec2(water_distortionX, water_distortionY); //todo add smooth step
+    }
 
     ///////////////////textures///////////////////
     {
@@ -95,11 +98,21 @@ void main() {
         // work with texture
         if (final_uv.x >= 0.0 && final_uv.x <= 1.0 && final_uv.y >= 0.0 && final_uv.y <= 1.0) 
         {
+            
+            //water     
+            vec3 n_color = texture2D(u_tex_water, final_uv).rgb;
+            color += n_color;
 
             //base 
-            vec3 n_color = texture2D(u_tex_base, final_uv).rgb;
-            if (length(n_color) > 0.1)
-                color = n_color;
+            if (length(n_color) > 0.)
+            {
+                n_color = texture2D(u_tex_base, final_uv).rgb;
+                if (length(n_color) > 0.9)
+                    color = n_color;
+            }
+            else
+                color += texture2D(u_tex_base, final_uv).rgb;
+
 
             //flower1
             float dist = distance(final_uv, normalFlowerCoords[0]);

@@ -17,6 +17,7 @@ class Plane {
       u_tex_flower3: { type: "t" },
       u_tex_flower4: { type: "t" },
       u_tex_flower5: { type: "t" },
+      u_tex_water: { type: "t" },
     
     };
     this.material = this.createMaterial();
@@ -58,6 +59,9 @@ class Plane {
     });
     new THREE.TextureLoader().load("media/sword/flower5.png", function (tex) {
       mat.uniforms.u_tex_flower5.value = tex;
+    });
+    new THREE.TextureLoader().load("media/sword/water.png", function (tex) {
+      mat.uniforms.u_tex_water.value = tex;
     });
   }
 
