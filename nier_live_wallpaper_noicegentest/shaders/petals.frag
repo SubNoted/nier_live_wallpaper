@@ -55,21 +55,24 @@ void main() {
     vec2 uv = gl_FragCoord.xy / resolution;
     vec3 color = vec3(0.04, 0.04, 0.05); // initialize color to black
 
-    //water distortion //TODO change
-    float water_distortionX = (perlinNoise(vec2(uvy.x*2. + time * 0.1, uvy.y*5.0 + time * 0.1) * 10.0));// * perlinNoise(vec2(uvy.x + time * 0.1, uvy.y * 10. + time * 0.16) * 8.0) - .5)*.015;
-    float water_distortionY = (perlinNoise(vec2(uvy.x + time * 0.07, uvy.y*6.) * 20.0))*.004;
-    //color += water_distortionX * 50.5;
+    //water distortion
+    float z = .5 - uv.y;
+    if (z < 0.)
+        z *= -1.;
+    z = pow(z, 0.2);
+    float water_distortionX = (perlinNoise(vec2(uvy.x*8. + time * 0.8, z*100.0 + time * 2.) * 1.0) -.5)*.01*z;
+    //color += water_distortionX * 10.5; //debug
+    vec2 distorted_uv = uv; 
     
 
     ///////petals////////////////////////////////
     if (uvy.y >= .5)
         color += vec3(pow(starNoise(vec2(uvy.x, uvy.y)), 1.0));
     else{
-        uvy += vec2(water_distortionX, water_distortionY);
+        uvy += vec2(water_distortionX, .0);
         color += vec3(pow(starNoise(vec2(uvy.x, 1.-uvy.y)), 1.5));
-        
+        distorted_uv +=vec2(water_distortionX, water_distortionX*1.);
     }
-    uv += vec2(water_distortionX*.01, water_distortionX); //todo add smooth step
     ///////////////////textures///////////////////
     {
         vec2 normal_tex_offset = vec2(.5, .65);
@@ -89,6 +92,7 @@ void main() {
 
         // Calculate the final UV coordinates
         vec2 final_uv = (uv - normal_tex_offset) * scaleFactors / scale + 0.5;
+        vec2 distorted_final_uv = (distorted_uv - normal_tex_offset) * scaleFactors / scale + 0.5;
 
         // Rotation transformation
         float anim0 = pow(sin(time*1.7),1.) * pow(cos(time*0.3),1.) * pow(cos(time*0.4),1.);
@@ -96,15 +100,19 @@ void main() {
         float angle0 = anim0*radians(15.); // Rotation angle based on time
         float angle1 = anim1*radians(15.); // Rotation angle based on time
         // work with texture
-        if (final_uv.x >= 0.0 && final_uv.x <= 1.0 && final_uv.y >= 0.0 && final_uv.y <= 1.0) 
+        if (final_uv.x >= 0.0 && final_uv.x <= 1.0 && final_uv.y >= -1.0 && final_uv.y <= 1.0) 
         {
-            
-            //water     
-            vec3 n_color = texture2D(u_tex_water, final_uv).rgb;
-            color += n_color;
+            vec3 water_color;
+            //water   
+            if (final_uv.y >= 0.0)  
+            {
+                water_color = texture2D(u_tex_water, distorted_final_uv).rgb;
+                color += water_color;
+            }
 
             //base 
-            if (length(n_color) > 0.)
+            vec3 n_color;
+            if (length(water_color) > 0.)
             {
                 n_color = texture2D(u_tex_base, final_uv).rgb;
                 if (length(n_color) > 0.9)
@@ -113,6 +121,10 @@ void main() {
             else
                 color += texture2D(u_tex_base, final_uv).rgb;
 
+            vec3 refl_color;
+            //base reflection
+            vec2 distorted_refl_final_uv = vec2(distorted_final_uv.x, 0.2 - distorted_final_uv.y);
+            refl_color += texture2D(u_tex_base, distorted_refl_final_uv).rgb;
 
             //flower1
             float dist = distance(final_uv, normalFlowerCoords[0]);
@@ -120,6 +132,12 @@ void main() {
             mat2 rotation = mat2(cos(Alpha), -sin(Alpha), sin(Alpha), cos(Alpha));
             vec2 rotated_uv = (rotation * ((final_uv - normalFlowerCoords[0])) + normalFlowerCoords[0]);
             color += texture2D(u_tex_flower1, rotated_uv).rgb;
+            //reflection of flower1
+            dist = distance(distorted_refl_final_uv, normalFlowerCoords[0]);
+            Alpha = angle1 * dist * 30.;
+            rotation = mat2(cos(Alpha), -sin(Alpha), sin(Alpha), cos(Alpha));
+            rotated_uv = (rotation * ((distorted_refl_final_uv - normalFlowerCoords[0])) + normalFlowerCoords[0]);
+            refl_color += texture2D(u_tex_flower1, rotated_uv).rgb;
 
             //flower2
             dist = distance(final_uv, normalFlowerCoords[2]);
@@ -127,6 +145,12 @@ void main() {
             rotation = mat2(cos(Alpha), -sin(Alpha), sin(Alpha), cos(Alpha));
             rotated_uv = rotation * ((final_uv - normalFlowerCoords[2])) + normalFlowerCoords[2];
             color += texture2D(u_tex_flower2, rotated_uv).rgb;
+            //reflection of flower2
+            dist = distance(distorted_refl_final_uv, normalFlowerCoords[2]);
+            Alpha = angle1 * dist * 15.;
+            rotation = mat2(cos(Alpha), -sin(Alpha), sin(Alpha), cos(Alpha));
+            rotated_uv = rotation * ((distorted_refl_final_uv - normalFlowerCoords[2])) + normalFlowerCoords[2];
+            refl_color += texture2D(u_tex_flower2, rotated_uv).rgb;
 
             //flower3        
             dist = distance(final_uv, normalFlowerCoords[4]);
@@ -134,6 +158,12 @@ void main() {
             rotation = mat2(cos(Alpha), -sin(Alpha), sin(Alpha), cos(Alpha));
             rotated_uv = rotation * ((final_uv - normalFlowerCoords[4])) + normalFlowerCoords[4];
             color += texture2D(u_tex_flower3, rotated_uv).rgb;
+            //reflection of flower3
+            dist = distance(distorted_refl_final_uv, normalFlowerCoords[4]);
+            Alpha = angle0 * dist * 40.;
+            rotation = mat2(cos(Alpha), -sin(Alpha), sin(Alpha), cos(Alpha));
+            rotated_uv = rotation * ((distorted_refl_final_uv - normalFlowerCoords[4])) + normalFlowerCoords[4];
+            refl_color += texture2D(u_tex_flower3, rotated_uv).rgb;
 
             //flower4
             dist = distance(final_uv, normalFlowerCoords[3]);
@@ -141,6 +171,12 @@ void main() {
             rotation = mat2(cos(Alpha), -sin(Alpha), sin(Alpha), cos(Alpha));       
             rotated_uv = rotation * ((final_uv - normalFlowerCoords[3])) + normalFlowerCoords[3];
             color += texture2D(u_tex_flower4, rotated_uv).rgb;
+            //reflection of flower4
+            dist = distance(distorted_refl_final_uv, normalFlowerCoords[3]);
+            Alpha = angle0 * dist * 15.;
+            rotation = mat2(cos(Alpha), -sin(Alpha), sin(Alpha), cos(Alpha));       
+            rotated_uv = rotation * ((distorted_refl_final_uv - normalFlowerCoords[3])) + normalFlowerCoords[3];
+            refl_color += texture2D(u_tex_flower4, rotated_uv).rgb;
 
             //flower5        
             dist = distance(final_uv, normalFlowerCoords[1]);
@@ -148,6 +184,12 @@ void main() {
             rotation = mat2(cos(Alpha), -sin(Alpha), sin(Alpha), cos(Alpha));
             rotated_uv = rotation * ((final_uv - normalFlowerCoords[1])) + normalFlowerCoords[1];
             color += texture2D(u_tex_flower5, rotated_uv).rgb;
+            //reflection of flower5
+            dist = distance(distorted_refl_final_uv, normalFlowerCoords[1]);
+            Alpha = angle0 * dist * 20.;
+            rotation = mat2(cos(Alpha), -sin(Alpha), sin(Alpha), cos(Alpha));
+            rotated_uv = rotation * ((distorted_refl_final_uv - normalFlowerCoords[1])) + normalFlowerCoords[1];
+            refl_color += texture2D(u_tex_flower5, rotated_uv).rgb;
 
             //////////////////glowing effect//////////////////
             float glowAnim = pow(sin(time),2.) * pow(cos(time*1.3),2.)*.7;
@@ -161,11 +203,20 @@ void main() {
             for (int i = 0; i < 5; i++)
             {
                 vec2 flowerCoords = (normalFlowerCoords[i] - 0.5) * scale / scaleFactors + normal_tex_offset;
-                float dist = distance(uvy, flowerCoords * resolution / resolution.y);
-                float light = 1.0 - dist * glowingScale[i];
+                float dist = distance(final_uv, normalFlowerCoords[i]);
+                float light = 1.0 - dist * glowingScale[i] * 0.5;
                 if (light > 0.) 
                     color += vec3(pow(light, 3. + glowAnim));
+
+                //reflection
+                dist = distance(distorted_refl_final_uv, normalFlowerCoords[i]);
+                light = 1.0 - dist * glowingScale[i] * 0.55;
+                if (light > 0.) 
+                    refl_color += vec3(pow(light, 3. + glowAnim));
             }
+
+            //gloom reflection
+            color += vec3(refl_color * 0.8);
         }
     }
 
