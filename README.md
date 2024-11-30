@@ -18,6 +18,7 @@ My version still far from original and much more far of what I want to do.
 - add glare on the sword
 - add hens flare
 - fix texture artifacts (strange black contour)
+- change settings for Live Wallpaper
 - definetly need to optimize
 
 Also I want to use mouce position to simulate wind for particles... Or something like that.
