@@ -59,8 +59,8 @@ void main() {
     float z = .5 - uv.y;
     if (z < 0.)
         z *= -1.;
-    z = pow(z, 0.2);
-    float water_distortionX = (perlinNoise(vec2(uvy.x*8. + time * 0.8, z*100.0 + time * 2.) * 1.0) -.5)*.01*z;
+    z = pow(z, 0.1);
+    float water_distortionX = (perlinNoise(vec2(uvy.x*4. + time * 0.8, z*z*100.0 + time * 1.5) * 1.0) -.5)*.01*z;
     //color += water_distortionX * 10.5; //debug
     vec2 distorted_uv = uv; 
     
@@ -71,11 +71,11 @@ void main() {
     else{
         uvy += vec2(water_distortionX, .0);
         color += vec3(pow(starNoise(vec2(uvy.x, 1.-uvy.y)), 1.5));
-        distorted_uv +=vec2(water_distortionX, water_distortionX*1.);
+        distorted_uv +=vec2(water_distortionX*.5, water_distortionX*1.);
     }
     ///////////////////textures///////////////////
     {
-        vec2 normal_tex_offset = vec2(.5, .65);
+        vec2 normal_tex_offset = vec2(.75, .65);
         vec2 scale = vec2(0.45, 0.45); // Adjust this value to scale the texture
 
         vec2 normalFlowerCoords[5];
@@ -98,7 +98,7 @@ void main() {
         float anim0 = pow(sin(time*1.7),1.) * pow(cos(time*0.3),1.) * pow(cos(time*0.4),1.);
         float anim1 = pow(sin((time+0.3)*1.7),1.) * pow(cos((time+0.3)*0.3),1.) * pow(cos((time+0.3)*0.4),1.);
         float angle0 = anim0*radians(15.); // Rotation angle based on time
-        float angle1 = anim1*radians(15.); // Rotation angle based on time
+        float angle1 = anim1*radians(15.);
         // work with texture
         if (final_uv.x >= 0.0 && final_uv.x <= 1.0 && final_uv.y >= -1.0 && final_uv.y <= 1.0) 
         {
@@ -204,19 +204,19 @@ void main() {
             {
                 vec2 flowerCoords = (normalFlowerCoords[i] - 0.5) * scale / scaleFactors + normal_tex_offset;
                 float dist = distance(final_uv, normalFlowerCoords[i]);
-                float light = 1.0 - dist * glowingScale[i] * 0.5;
+                float light = 1.0 - dist * glowingScale[i] * 0.45;
                 if (light > 0.) 
                     color += vec3(pow(light, 3. + glowAnim));
 
                 //reflection
                 dist = distance(distorted_refl_final_uv, normalFlowerCoords[i]);
-                light = 1.0 - dist * glowingScale[i] * 0.55;
+                light = 1.0 - dist * glowingScale[i] * 0.45;
                 if (light > 0.) 
-                    refl_color += vec3(pow(light, 3. + glowAnim));
+                    refl_color += vec3(pow(light, 3.5 + glowAnim));
             }
 
             //gloom reflection
-            color += vec3(refl_color * 0.8);
+            color += vec3(refl_color * 0.78);
         }
     }
 
