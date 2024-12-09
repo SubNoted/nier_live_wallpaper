@@ -5,6 +5,8 @@ This wallpaper doesn't have anything to clearly indicate that it's about Nier, b
 ## How to use wallpaper
 This wallpaper was made and tested to work with [Lively Wallpaper](https://github.com/rocksdanister/lively?ysclid=m4489zp8k1784699613). Just download zip file in releases and drag into Lively Wallpaper! Should work.
 
+<img src="/nier_live_wallpaper/lively_p.gif" width="600" height="338"/>
+
 ## I'M NOT THE AUTHOR OF IDEA
 As I mentioned I found that wallpaper accidentally online but coudn't find it's author. Thus I didn't draw any textures (just modified them).
 If you are the creator of video below or general idea, please accept my admiration and thank you!
